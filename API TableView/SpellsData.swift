@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - SpellsDatum
-struct SpellsDatum: Codable {
+struct SpellsDatum: Decodable {
     let id, name: String
     let incantation: String?
     let effect: String
