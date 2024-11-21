@@ -20,9 +20,10 @@ class ViewController: UIViewController {
         tableView.snp.makeConstraints { make in
                     make.edges.equalTo(view.safeAreaLayoutGuide)
         }
-        // tableView.delegate = self
+        tableView.delegate = self
         tableView.dataSource = self
         tableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "CustomCell")
+        tableView.register(TestHeader.self, forHeaderFooterViewReuseIdentifier: TestHeader.identifier)
         
         APIManager.shared.getSpells { [weak self] values in
             DispatchQueue.main.async {
@@ -36,7 +37,7 @@ class ViewController: UIViewController {
 
     // MARK: - UITableViewDataSource
 extension ViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         incantationsData.count
     }
     
@@ -49,10 +50,23 @@ extension ViewController: UITableViewDataSource {
         cell.configure(with: spell)
         return cell
     }
+}
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-            return "А правду говорят..."
+extension ViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: TestHeader.identifier) as? TestHeader else {
+            return nil
         }
+        return header
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        50
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        1
+    }
 }
 
 class CustomTableViewCell: UITableViewCell {
@@ -109,3 +123,55 @@ class CustomTableViewCell: UITableViewCell {
     }
     
 }
+
+class TestHeader: UITableViewHeaderFooterView {
+    static let identifier = "TestHeader"
+    
+    private lazy var headerLable: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16)
+        label.textAlignment = .center
+        label.text = "LEGACY"
+        return label
+    }()
+
+    override init(reuseIdentifier: String?) {
+        super.init(reuseIdentifier: reuseIdentifier)
+        contentView.backgroundColor = .black
+        setupHierarchy()
+        setupConstraints()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupHierarchy() {
+        contentView.addSubview(headerLable)
+    }
+    
+    private func setupConstraints() {
+        headerLable.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+    }
+    
+    private func applyCornerRadiusToTopCorners(radius: CGFloat) {
+            let path = UIBezierPath(
+                roundedRect: contentView.bounds,
+                byRoundingCorners: [.topLeft, .topRight],
+                cornerRadii: CGSize(width: radius, height: radius)
+            )
+            
+            let mask = CAShapeLayer()
+            mask.path = path.cgPath
+            contentView.layer.mask = mask
+        }
+        
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            applyCornerRadiusToTopCorners(radius: 15)
+        }
+}
+
